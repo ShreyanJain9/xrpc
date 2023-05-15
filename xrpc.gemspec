@@ -8,7 +8,7 @@ specfiles.push("./lib/xrpc.rb")
 Gem::Specification.new do |spec|
   spec.name = "xrpc"
   spec.version = XRPC::VERSION
-  spec.authors = ["Shreyan Jain", "Tynan Burke"]
+  spec.authors = ["Shreyan Jain"]
   spec.email = ["shreyan.jain.9@outlook.com"]
   spec.description = "A Ruby gem for interacting with bsky/atproto"
   spec.summary = "Interact with bsky/atproto using Ruby"
