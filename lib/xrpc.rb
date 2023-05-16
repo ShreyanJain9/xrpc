@@ -1,130 +1,55 @@
+# typed: false
 require "uri"
 require "httparty"
 require "json"
 
 module XRPC
-  class Service
-    def initialize(pds)
-      @pds = pds
-    end
-
-    def call(endpoint, params = {}, body = nil)
-      endpoint_uri = URI("#{@pds}/xrpc/#{endpoint}?#{params.to_query}")
-      headers = { 'Content-Type': "application/json" }
-
-      response = if body
-          HTTParty.post(endpoint_uri, body: body.to_json, headers: headers)
-        else
-          HTTParty.get(endpoint_uri)
-        end
-
-      { encoding: response.headers["Content-Type"], body: JSON.parse(response.body) }
-    end
+  def request(pds, endpoint_location, params)
+    Endpoint.new(pds, endpoint_location).get(params)
   end
-end
 
-module XRPC
+  module_function :request
+
   class Endpoint
-    attr_reader :id, :lexicon
+    attr_reader :request_uri
 
-    def initialize(id, lexicon)
-      @id = id
-      @lexicon = lexicon
-    end
-
-    def call(service, params = {}, body = nil)
-      service.call(@id, params, body)
-    end
-  end
-end
-
-module XRPC
-  class Lexicon
-    def initialize(lexicon)
-      @lexicon = lexicon
-    end
-
-    def endpoint(id)
-      Endpoint.new(id, @lexicon)
-    end
-  end
-end
-
-module XRPC
-  class Registry
-    def initialize
-      @lexicons = []
-    end
-
-    def add_lexicon(lexicon)
-      @lexicons << Lexicon.new(lexicon)
-    end
-
-    def service(pds)
-      Service.new(pds)
-    end
-
-    def endpoint(id)
-      @lexicons.each do |lexicon|
-        endpoint = lexicon.endpoint(id)
-        return endpoint if endpoint
-
-        nil
+    def initialize(pds, endpoint_location, authenticated: false, token: nil)
+      @pds = pds
+      @endpoint_location = endpoint_location
+      @authenticated = authenticated
+      @headers = default_headers()
+      if token # Ideally, you shouldn't pass the token when creating the endpoint
+        @headers = default_authenticated_headers(token)
       end
     end
+
+    def default_headers
+      { "Content-Type" => "application/json" }
+    end
+
+    def authenticated?() @authenticated end
+
+    def default_authenticated_headers(access_token)
+      default_headers.merge({
+        Authorization: "Bearer #{access_token}",
+      })
+    end
+
+    def authenticate(token) # This is the proper place to authenticate with a token
+      # This is still a pretty weird way to authenticate, but it works (for now)
+      if not @authenticated == true
+        raise Error, "Non-authenticated endpoint cannot be authenticated"
+      end
+      @headers = default_authenticated_headers(token)
+    end
+
+    def get(params)
+      query_params = URI.encode_www_form(params) # e.g. "foo=bar&baz=qux" from (foo: "bar", baz: "qux")
+      @request_uri = URI("#{@pds}/xrpc/#{@endpoint_location}?#{query_params}")
+      response = HTTParty.get(@request_uri, headers: @headers)
+      JSON.parse(response.body)
+    end
   end
+
+  class Error < StandardError; end
 end
-
-# # example usage
-# registry = XRPC::Registry.new
-
-# registry.add_lexicon({
-#   lexicon: 1,
-#   id: 'io.example.ping',
-#   defs: {
-#     main: {
-#       type: 'query',
-#       description: 'Ping the server',
-#       parameters: {
-#         type: 'params',
-#         properties: { message: { type: 'string' } }
-#       },
-#       output: {
-#         encoding: 'application/json',
-#         schema: {
-#           type: 'object',
-#           required: ['message'],
-#           properties: { message: { type: 'string' } }
-#         }
-#       }
-#     }
-#   }
-# })
-
-# registry.add_lexicon({
-#   lexicon: 1,
-#   id: 'io.example.writeJsonFile',
-#   defs: {
-#     main: {
-#       type: 'procedure',
-#       description: 'Write a JSON file',
-#       parameters: {
-#         type: 'params',
-#         properties: { fileName: { type: 'string' } }
-#       },
-#       input: {
-#         encoding: 'application/json'
-#       }
-#     }
-#   }
-# })
-
-# # call endpoint with query parameters and input body
-# res1 = registry.service('https://example.com').call('io.example.writeJsonFile', { fileName: 'foo.json' }, { hello: 'world', thisIs: 'the file to write' })
-# puts res1
-# # => { encoding: 'application/json', body: nil }
-
-# # call endpoint with query parameters only
-# res2 = registry.endpoint('io.example.ping').call(registry.service('https://example.com'), { message: 'hello world' })
-# puts res2
-# # => { encoding: 'application/json', body: { message: 'hello world' } }
