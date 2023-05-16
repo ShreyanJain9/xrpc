@@ -49,6 +49,12 @@ module XRPC
       response = HTTParty.get(@request_uri, headers: @headers)
       JSON.parse(response.body)
     end
+
+    def post(params)
+      @request_uri = URI("#{@pds}/xrpc/#{@endpoint_location}")
+      response = HTTParty.post(@request_uri, body: params.to_json, headers: @headers)
+      if response then JSON.parse(response.body) end
+    end
   end
 
   class Error < StandardError; end
