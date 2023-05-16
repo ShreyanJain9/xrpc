@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    xrpc (0.0.1)
+    xrpc (0.0.2)
       date
       httparty
       json (>= 2.0)
