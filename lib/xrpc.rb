@@ -51,7 +51,7 @@ module XRPC
 end
 
 module XRPC
-  class Registry
+  class Client
     def initialize
       @lexicons = []
     end
