@@ -9,7 +9,7 @@ module XRPC
     end
 
     def call(endpoint, params = {}, body = nil)
-      endpoint_uri = URI("#{@pds}/xrpc/#{endpoint}?#{params.to_query}")
+      endpoint_uri = URI("#{@pds}/xrpc/#{endpoint}?#{URI.encode_www_form(params)}")
       headers = { 'Content-Type': "application/json" }
 
       response = if body
@@ -76,9 +76,9 @@ module XRPC
 end
 
 # # example usage
-# registry = XRPC::Registry.new
+# client = XRPC::Client.new
 
-# registry.add_lexicon({
+# client.add_lexicon({
 #   lexicon: 1,
 #   id: 'io.example.ping',
 #   defs: {
@@ -101,7 +101,7 @@ end
 #   }
 # })
 
-# registry.add_lexicon({
+# client.add_lexicon({
 #   lexicon: 1,
 #   id: 'io.example.writeJsonFile',
 #   defs: {
@@ -120,11 +120,11 @@ end
 # })
 
 # # call endpoint with query parameters and input body
-# res1 = registry.service('https://example.com').call('io.example.writeJsonFile', { fileName: 'foo.json' }, { hello: 'world', thisIs: 'the file to write' })
+# res1 = client.service('https://example.com').call('io.example.writeJsonFile', { fileName: 'foo.json' }, { hello: 'world', thisIs: 'the file to write' })
 # puts res1
 # # => { encoding: 'application/json', body: nil }
 
 # # call endpoint with query parameters only
-# res2 = registry.endpoint('io.example.ping').call(registry.service('https://example.com'), { message: 'hello world' })
+# res2 = client.endpoint('io.example.ping').call(client.service('https://example.com'), { message: 'hello world' })
 # puts res2
 # # => { encoding: 'application/json', body: { message: 'hello world' } }
