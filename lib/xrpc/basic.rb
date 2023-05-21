@@ -53,7 +53,15 @@ module XRPC
     def post(params)
       @request_uri = URI("#{@pds}/xrpc/#{@endpoint_location}")
       response = HTTParty.post(@request_uri, body: params.to_json, headers: @headers)
+
       if response then JSON.parse(response.body) end
+    end
+
+    def post_without_response(params)
+      @request_uri = URI("#{@pds}/xrpc/#{@endpoint_location}")
+      response = HTTParty.post(@request_uri, body: params.to_json, headers: @headers)
+
+      response.body if response
     end
   end
 
