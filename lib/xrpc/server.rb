@@ -1,43 +1,44 @@
-require "json"
-require "rack"
+require "sinatra/base"
 
-module XRPC
-  class Server
-    def initialize(lexicons)
-      @lexicons = lexicons
-    end
+module Sinatra
+  module XRPCRoutes
+    def xrpc_get(lexicon, &block)
+      # Extract the parameter names from the block's parameters
+      parameters = block.parameters.map { |type, name| name.to_s }
 
-    def method(id)
-      # endpoint = find_endpoint(id)
-      # raise ArgumentError, "Endpoint '#{id}' not found" unless endpoint
+      # Define a new route with the provided lexicon and block
+      get "/xrpc/#{lexicon}" do
+        content_type :json
+        # Create a hash of arguments with parameter names as keys
+        args = {}
+        parameters.each do |param|
+          args[param] = params[param] if params[param]
+        end
 
-      define_singleton_method(id) do |input, **params|
-        endpoint.call(input, params)
+        # Call the block with the arguments
+        instance_exec(args, &block)
       end
     end
 
-    def decode_params(nsid, query_params)
-      #  logic to decode query parameters based on nsid
-      # For simplicity, let's assume no decoding is needed and return the query params as is
-      query_params
-    end
+    def xrpc_post(lexicon, &block)
+      # Extract the parameter names from the block's parameters
+      parameters = block.parameters.map { |type, name| name.to_s }
 
-    def call(nsid, input, **params)
-      endpoint = find_endpoint(nsid)
-      raise ArgumentError, "Endpoint '#{nsid}' not found" unless endpoint
+      # Define a new route with the provided lexicon and block
+      post "/xrpc/#{lexicon}" do
+        content_type :json
+        # Create a hash of arguments with parameter names as keys
+        args = {}
+        parameters.each do |param|
+          args[param] = params[param] if params[param]
+        end
 
-      endpoint.call(input, params)
-    end
-
-    private
-
-    def find_endpoint(id)
-      @lexicons.each do |lexicon|
-        endpoint = lexicon.endpoint(id)
-        return endpoint if endpoint
+        # Call the block with the arguments
+        instance_exec(args, &block)
       end
-
-      nil
     end
   end
+
+  # Register the module to make it available as a macro
+  register XRPCRoutes
 end
