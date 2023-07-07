@@ -37,8 +37,8 @@ To read more, go to https://atproto.com/specs/xrpc.
 The below is an example of how to use this XRPC Ruby library to resolve BlueSky handles to DIDs.
 
 ```ruby
-resolveHandle = XRPC::Endpoint.new("https://bsky.social", "com.atproto.identity.resolveHandle")
-response = resolveHandle.get(handle: "shreyan.bsky.social")
+bluesky = XRPC::Client.new("https://bsky.social")
+bluesky.get.com_atproto_identity_resolveHandle(handle: "shreyan.bsky.social")
 ```
 
 ## Development
