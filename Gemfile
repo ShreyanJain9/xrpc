@@ -6,3 +6,5 @@ source "https://rubygems.org"
 gemspec
 
 gem "rake", "~> 13.0"
+
+gem "tapioca", "~> 0.11.7"
