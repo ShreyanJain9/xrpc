@@ -9,13 +9,24 @@ module XRPC
   end
 
   class Client
-    attr_reader :get, :post
+    attr_accessor :headers, :token
 
     def initialize(base_url, token = nil)
-      @headers = { :"Content-Type" => "application/json", :Authorization => "Bearer #{token}" }
+      @token = token
+      @headers = { :"Content-Type" => "application/json", :Authorization => "Bearer #{@token}" }
       @base_url = base_url
-      @get = GetRequest.new(base_url, @headers)
-      @post = PostRequest.new(base_url, @headers)
+    end
+
+    def headers!
+      @headers = { :"Content-Type" => "application/json", :Authorization => "Bearer #{@token}" }
+    end
+
+    def get
+      GetRequest.new(base_url, @headers)
+    end
+
+    def post
+      PostRequest.new(base_url, @headers)
     end
 
     def inspect
@@ -31,8 +42,9 @@ module XRPC
       end
 
       def method_missing(method_name, **params)
-        response = self.class.get("/xrpc/#{method_name.to_s.gsub("_", ".")}", query: params, headers: @headers)
-        response.body.empty? ? response.code : JSON.parse(response.body)
+        self.class.get("/xrpc/#{method_name.to_s.gsub("_", ".")}", query: params, headers: @headers).then do |response|
+          response.body.empty? ? response.code : JSON.parse(response.body)
+        end
       end
     end
 
