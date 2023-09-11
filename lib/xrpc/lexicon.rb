@@ -39,6 +39,10 @@ module XRPC
       raise NotImplementedError, "Subclasses must implement the .make_request method."
     end
 
+    def to_proc
+      method(:call).to_proc
+    end
+
     private
 
     def base_url
