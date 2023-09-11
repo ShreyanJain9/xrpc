@@ -57,8 +57,9 @@ module XRPC
       end
 
       def method_missing(method_name, **params)
-        response = self.class.post("/xrpc/#{method_name.to_s.gsub("_", ".")}", body: params.to_json, headers: @headers)
-        response.body.empty? ? response.code : JSON.parse(response.body)
+        self.class.post("/xrpc/#{method_name.to_s.gsub("_", ".")}", body: params.to_json, headers: @headers).then do |response|
+          response.body.empty? ? response.code : JSON.parse(response.body)
+        end
       end
     end
   end
