@@ -36,7 +36,7 @@ module XRPC
     end
 
     def make_request(payload)
-      raise NotImplementedError, "Subclasses must implement the .make_request method."
+      raise NotImplementedError, "Subclasses must implement the #make_request method."
     end
 
     def to_proc
