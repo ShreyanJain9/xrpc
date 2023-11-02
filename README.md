@@ -38,7 +38,7 @@ The below is an example of how to use this XRPC Ruby library to resolve BlueSky 
 
 ```ruby
 bluesky = XRPC::Client.new("https://bsky.social")
-bluesky.get.com_atproto_identity_resolveHandle(handle: "shreyan.bsky.social")
+bluesky.get.com.atproto.identity.resolveHandle[handle: "shreyan.bsky.social"] 
 ```
 
 ## Development
